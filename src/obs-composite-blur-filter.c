@@ -72,17 +72,18 @@ struct obs_source_info obs_composite_blur = {
 void calculate_kernel(float radius, struct composite_blur_filter_data *filter)
 {
 	const size_t max_size = 128;
+	size_t d_kernel_size = 0;
+
+	fDarray d_weights;
+	da_init(d_weights);
 
 	fDarray weights;
 	da_init(weights);
-	radius = (float)round(radius);
-	//const float bins_per_pixel =
-	//	((float)kernel_size - 0.5f) / (radius + 0.5f);
+	radius = (float)round(radius) * 3.0f;
 
+	// 1. Calculate discrete weights
 	const float bins_per_pixel =
 		((2.f * (float)kernel_size - 1.f)) / (1.f + 2.f * radius);
-
-	// kernel_size = 4, radius = 2.0;, bpp = 1.3333
 	obs_log(LOG_INFO, "BINS PER PIXEL: %f", bins_per_pixel);
 	obs_log(LOG_INFO, "TOTAL BINS: %d", kernel_size);
 	size_t current_bin = 0;
@@ -115,8 +116,43 @@ void calculate_kernel(float radius, struct composite_blur_filter_data *filter)
 				weights.num + 1, weight);
 			weight = 0.0;
 		}
-		da_push_back(weights, &weight);
+		da_push_back(d_weights, &weight);
 	}
+
+	fDarray offsets;
+	da_init(offsets);
+
+	fDarray d_offsets;
+	da_init(d_offsets);
+
+	// 2. Calculate discrete offsets
+	for (int i = 0; i <= radius; i++) {
+		float val = (float)i;
+		da_push_back(d_offsets, &val);
+	}
+
+	// 3. Calculate linear sampled weights
+	da_push_back(weights, &d_weights.array[0]);
+	da_push_back(offsets, &d_offsets.array[0]);
+
+	for (int i = 1; i < d_weights.num - 1; i += 2) {
+		const float weight =
+			d_weights.array[i] + d_weights.array[i + 1];
+		da_push_back(weights, &weight);
+		const float offset =
+			(d_offsets.array[i] * d_weights.array[i] +
+			 d_offsets.array[i + 1] * d_weights.array[i + 1]) /
+			weight;
+		da_push_back(offsets, &offset);
+	}
+	if (d_weights.num % 2 == 0) {
+		const float weight = d_weights.array[d_weights.num - 1];
+		const float offset = d_offsets.array[d_offsets.num - 1];
+		da_push_back(weights, &weight);
+		da_push_back(offsets, &offset);
+	}
+
+	// N. Pad out kernel arrays
 	const size_t padding = max_size - weights.num;
 	filter->kernel_size = weights.num;
 
@@ -126,14 +162,6 @@ void calculate_kernel(float radius, struct composite_blur_filter_data *filter)
 	}
 	da_free(filter->kernel);
 	filter->kernel = weights;
-
-	fDarray offsets;
-	da_init(offsets);
-
-	for (int i = 0; i <= radius; i++) {
-		float val = (float)i;
-		da_push_back(offsets, &val);
-	}
 
 	for (int i = 0; i < padding; i++) {
 		float pad = 0.0f;
@@ -363,7 +391,7 @@ static obs_properties_t *composite_blur_properties(void *data)
 
 	obs_properties_add_float_slider(
 		props, "radius", obs_module_text("CompositeBlurFilter.Radius"),
-		0.0, 127.0, 1.0);
+		0.0, 83.0, 1.0);
 	return props;
 }
 

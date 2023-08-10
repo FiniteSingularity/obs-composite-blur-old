@@ -41,9 +41,9 @@ float4 mainImage(VertData v_in) : TARGET
 {
     float2 texelSize = {1.0/1920.0, 1.0/1080.0};
 
-    if(v_in.uv.x > 0.5) {
-        return image.Sample(textureSampler, v_in.uv);
-    }
+    // if(v_in.uv.x > 0.5) {
+    //     return image.Sample(textureSampler, v_in.uv);
+    // }
 
     // DO THE BLUR
     // 1. Sample incoming pixel, multiply by weight[0]
