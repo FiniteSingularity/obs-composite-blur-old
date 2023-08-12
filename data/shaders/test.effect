@@ -5,7 +5,6 @@ uniform texture2d image;
 
 uniform float2 uv_size;
 uniform float2 dir;
-uniform float midpoint;
 uniform float4 offset[WEIGHT_SIZE];
 uniform float4 weight[WEIGHT_SIZE];
 uniform int kernel_size;

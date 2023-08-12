@@ -20,3 +20,5 @@ static obs_properties_t *composite_blur_properties(void *data);
 static char *load_shader_from_file(const char *file_name);
 static void
 composite_blur_reload_effect(struct composite_blur_filter_data *filter);
+static void load_blur_effect(struct composite_blur_filter_data *filter);
+static void load_composite_effect(struct composite_blur_filter_data *filter);
