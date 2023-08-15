@@ -174,12 +174,14 @@ static void composite_blur_destroy(void *data)
 	if (filter->render2) {
 		gs_texrender_destroy(filter->render2);
 	}
+
 	if (filter->input_texrender) {
 		gs_texrender_destroy(filter->input_texrender);
 	}
 	if (filter->output_texrender) {
 		gs_texrender_destroy(filter->output_texrender);
 	}
+
 	obs_leave_graphics();
 	bfree(filter);
 }
