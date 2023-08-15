@@ -138,8 +138,10 @@ static void *composite_blur_create(obs_data_t *settings, obs_source_t *source)
 	struct composite_blur_filter_data *filter =
 		bzalloc(sizeof(struct composite_blur_filter_data));
 	filter->context = source;
-	filter->radius = 0.0;
-	filter->angle = 0.0;
+	filter->radius = 0.0f;
+	filter->angle = 0.0f;
+	filter->center_x = 0.0f;
+	filter->center_y = 0.0f;
 	filter->blur_algorithm = NULL;
 	filter->blur_type = NULL;
 	filter->rendering = false;
@@ -167,6 +169,12 @@ static void composite_blur_destroy(void *data)
 	}
 	if (filter->composite_effect) {
 		gs_effect_destroy(filter->composite_effect);
+	}
+	if (filter->radial_effect) {
+		gs_effect_destroy(filter->radial_effect);
+	}
+	if (filter->motion_effect) {
+		gs_effect_destroy(filter->motion_effect);
 	}
 	if (filter->render) {
 		gs_texrender_destroy(filter->render);
@@ -215,6 +223,9 @@ static void composite_blur_update(void *data, obs_data_t *settings)
 
 	filter->radius = (float)obs_data_get_double(settings, "radius");
 	calculate_kernel(filter->radius, filter);
+
+	filter->center_x = (float)obs_data_get_double(settings, "center_x");
+	filter->center_y = (float)obs_data_get_double(settings, "center_y");
 
 	filter->angle = (float)obs_data_get_double(settings, "angle");
 
@@ -329,6 +340,23 @@ static obs_properties_t *composite_blur_properties(void *data)
 		props, "angle", obs_module_text("CompositeBlurFilter.Angle"),
 		-360.0, 360.0, 0.1);
 
+	obs_properties_t *center_coords = obs_properties_create();
+
+	obs_properties_add_float_slider(
+		center_coords, "center_x",
+		obs_module_text("CompositeBlurFilter.Center.X"), -3840.0,
+		7680.0, 1.0);
+
+	obs_properties_add_float_slider(
+		center_coords, "center_y",
+		obs_module_text("CompositeBlurFilter.Center.Y"), -2160.0,
+		4320.0, 1.0);
+
+	obs_properties_add_group(
+		props, "center_coordinate",
+		obs_module_text("CompositeBlurFilter.CenterCoordinate"),
+		OBS_GROUP_NORMAL, center_coords);
+
 	struct dstr sources_name = {0};
 
 	obs_property_t *p = obs_properties_add_list(
@@ -354,50 +382,43 @@ static bool setting_blur_types_modified(obs_properties_t *props,
 	} else if (strcmp(blur_type, "Zoom") == 0) {
 		return settings_blur_zoom(props);
 	} else if (strcmp(blur_type, "Motion") == 0) {
-		return true;
+		return settings_blur_directional(props);
 	}
 	return true;
 }
 
+static void setting_visibility(const char *prop_name, bool visible,
+			       obs_properties_t *props)
+{
+	obs_property_t *p = obs_properties_get(props, prop_name);
+	obs_property_set_enabled(p, visible);
+	obs_property_set_visible(p, visible);
+}
+
 static bool settings_blur_area(obs_properties_t *props)
 {
-	obs_property_t *p = obs_properties_get(props, "radius");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
-	p = obs_properties_get(props, "angle");
-	obs_property_set_enabled(p, false);
-	obs_property_set_visible(p, false);
-	p = obs_properties_get(props, "background");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
+	setting_visibility("radius", true, props);
+	setting_visibility("angle", false, props);
+	setting_visibility("center_coordinate", false, props);
+	setting_visibility("background", true, props);
 	return true;
 }
 
 static bool settings_blur_directional(obs_properties_t *props)
 {
-	obs_property_t *p = obs_properties_get(props, "radius");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
-	p = obs_properties_get(props, "angle");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
-	p = obs_properties_get(props, "background");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
+	setting_visibility("radius", true, props);
+	setting_visibility("angle", true, props);
+	setting_visibility("center_coordinate", false, props);
+	setting_visibility("background", true, props);
 	return true;
 }
 
 static bool settings_blur_zoom(obs_properties_t *props)
 {
-	obs_property_t *p = obs_properties_get(props, "radius");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
-	p = obs_properties_get(props, "angle");
-	obs_property_set_enabled(p, false);
-	obs_property_set_visible(p, false);
-	p = obs_properties_get(props, "background");
-	obs_property_set_enabled(p, true);
-	obs_property_set_visible(p, true);
+	setting_visibility("radius", true, props);
+	setting_visibility("angle", false, props);
+	setting_visibility("center_coordinate", true, props);
+	setting_visibility("background", true, props);
 	return true;
 }
 
@@ -422,6 +443,8 @@ composite_blur_reload_effect(struct composite_blur_filter_data *filter)
 
 	load_blur_effect(filter);
 	load_composite_effect(filter);
+	load_radial_blur_effect(filter);
+	load_motion_blur_effect(filter);
 
 	obs_data_release(settings);
 }
@@ -459,6 +482,96 @@ static void load_blur_effect(struct composite_blur_filter_data *filter)
 		     effect_index++) {
 			gs_eparam_t *param = gs_effect_get_param_by_idx(
 				filter->effect, effect_index);
+			struct gs_effect_param_info info;
+			gs_effect_get_param_info(param, &info);
+			if (strcmp(info.name, "uv_size") == 0) {
+				filter->param_uv_size = param;
+			} else if (strcmp(info.name, "dir") == 0) {
+				filter->param_dir = param;
+			}
+		}
+	}
+}
+
+static void load_motion_blur_effect(struct composite_blur_filter_data *filter)
+{
+	if (filter->motion_effect != NULL) {
+		obs_enter_graphics();
+		gs_effect_destroy(filter->motion_effect);
+		filter->motion_effect = NULL;
+		obs_leave_graphics();
+	}
+	char *shader_text = NULL;
+	struct dstr filename = {0};
+	dstr_cat(&filename, obs_get_module_data_path(obs_current_module()));
+	dstr_cat(&filename, "/shaders/motion_gaussian.effect");
+	shader_text = load_shader_from_file(filename.array);
+	obs_log(LOG_INFO, shader_text);
+	char *errors = NULL;
+
+	obs_enter_graphics();
+	filter->motion_effect = gs_effect_create(shader_text, NULL, &errors);
+	obs_leave_graphics();
+
+	bfree(shader_text);
+	if (filter->motion_effect == NULL) {
+		obs_log(LOG_WARNING,
+			"[obs-composite-blur] Unable to load .effect file.  Errors:\n%s",
+			(errors == NULL || strlen(errors) == 0 ? "(None)"
+							       : errors));
+		bfree(errors);
+	} else {
+		size_t effect_count =
+			gs_effect_get_num_params(filter->motion_effect);
+		for (size_t effect_index = 0; effect_index < effect_count;
+		     effect_index++) {
+			gs_eparam_t *param = gs_effect_get_param_by_idx(
+				filter->motion_effect, effect_index);
+			struct gs_effect_param_info info;
+			gs_effect_get_param_info(param, &info);
+			if (strcmp(info.name, "uv_size") == 0) {
+				filter->param_uv_size = param;
+			} else if (strcmp(info.name, "dir") == 0) {
+				filter->param_dir = param;
+			}
+		}
+	}
+}
+
+static void load_radial_blur_effect(struct composite_blur_filter_data *filter)
+{
+	if (filter->radial_effect != NULL) {
+		obs_enter_graphics();
+		gs_effect_destroy(filter->radial_effect);
+		filter->radial_effect = NULL;
+		obs_leave_graphics();
+	}
+	char *shader_text = NULL;
+	struct dstr filename = {0};
+	dstr_cat(&filename, obs_get_module_data_path(obs_current_module()));
+	dstr_cat(&filename, "/shaders/radial_gaussian.effect");
+	shader_text = load_shader_from_file(filename.array);
+	obs_log(LOG_INFO, shader_text);
+	char *errors = NULL;
+
+	obs_enter_graphics();
+	filter->radial_effect = gs_effect_create(shader_text, NULL, &errors);
+	obs_leave_graphics();
+
+	bfree(shader_text);
+	if (filter->radial_effect == NULL) {
+		obs_log(LOG_WARNING,
+			"[obs-composite-blur] Unable to load .effect file.  Errors:\n%s",
+			(errors == NULL || strlen(errors) == 0 ? "(None)"
+							       : errors));
+		bfree(errors);
+	} else {
+		size_t effect_count =
+			gs_effect_get_num_params(filter->radial_effect);
+		for (size_t effect_index = 0; effect_index < effect_count;
+		     effect_index++) {
+			gs_eparam_t *param = gs_effect_get_param_by_idx(
+				filter->radial_effect, effect_index);
 			struct gs_effect_param_info info;
 			gs_effect_get_param_info(param, &info);
 			if (strcmp(info.name, "uv_size") == 0) {

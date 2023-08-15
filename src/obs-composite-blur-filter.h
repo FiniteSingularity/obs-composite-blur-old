@@ -19,6 +19,9 @@ struct composite_blur_filter_data {
 	obs_source_t *context;
 	gs_effect_t *effect;
 	gs_effect_t *composite_effect;
+	gs_effect_t *radial_effect;
+	gs_effect_t *motion_effect;
+
 	bool input_rendered;
 	gs_texrender_t *input_texrender;
 	bool output_rendered;
@@ -37,6 +40,9 @@ struct composite_blur_filter_data {
 	bool reload;
 
 	struct vec2 uv_size;
+
+	float center_x;
+	float center_y;
 
 	float radius;
 	float angle;
@@ -65,6 +71,8 @@ static obs_properties_t *composite_blur_properties(void *data);
 static void
 composite_blur_reload_effect(struct composite_blur_filter_data *filter);
 static void load_blur_effect(struct composite_blur_filter_data *filter);
+static void load_motion_blur_effect(struct composite_blur_filter_data *filter);
+static void load_radial_blur_effect(struct composite_blur_filter_data *filter);
 static void load_composite_effect(struct composite_blur_filter_data *filter);
 extern gs_texture_t *blend_composite(gs_texture_t *texture,
 				     struct composite_blur_filter_data *data);

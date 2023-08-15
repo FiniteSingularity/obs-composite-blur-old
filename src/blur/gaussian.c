@@ -8,6 +8,10 @@ void render_video_gaussian(struct composite_blur_filter_data *data)
 		gaussian_area_blur(data);
 	} else if (strcmp(data->blur_type, "Directional") == 0) {
 		gaussian_directional_blur(data);
+	} else if (strcmp(data->blur_type, "Zoom") == 0) {
+		gaussian_zoom_blur(data);
+	} else if (strcmp(data->blur_type, "Motion") == 0) {
+		gaussian_motion_blur(data);
 	}
 }
 
@@ -91,8 +95,7 @@ static void gaussian_area_blur(struct composite_blur_filter_data *data)
 }
 
 /*
- *  Performs a directional blur using the gaussian kernel.  Blur is
- *  equal in both x and y directions.
+ *  Performs a directional blur using the gaussian kernel.
  */
 static void gaussian_directional_blur(struct composite_blur_filter_data *data)
 {
@@ -133,6 +136,134 @@ static void gaussian_directional_blur(struct composite_blur_filter_data *data)
 	direction.x = (float)cos(rads) / data->width;
 	direction.y = (float)sin(rads) / data->height;
 	gs_effect_set_vec2(texel_step, &direction);
+
+	set_blending_parameters();
+	//set_render_parameters();
+
+	data->output_texrender =
+		create_or_reset_texrender(data->output_texrender);
+
+	if (gs_texrender_begin(data->output_texrender, data->width,
+			       data->height)) {
+		while (gs_effect_loop(effect, "Draw"))
+			gs_draw_sprite(texture, 0, data->width, data->height);
+		gs_texrender_end(data->output_texrender);
+	}
+
+	gs_blend_state_pop();
+}
+
+/*
+ *  Performs a motion blur using the gaussian kernel.
+ */
+static void gaussian_motion_blur(struct composite_blur_filter_data *data)
+{
+	gs_effect_t *effect = data->motion_effect;
+	gs_effect_t *composite_effect = data->composite_effect;
+
+	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
+
+	if (!effect || !texture) {
+		return;
+	}
+
+	texture = blend_composite(texture, data);
+
+	gs_eparam_t *image = gs_effect_get_param_by_name(effect, "image");
+	gs_effect_set_texture(image, texture);
+
+	gs_eparam_t *weight = gs_effect_get_param_by_name(effect, "weight");
+
+	gs_effect_set_val(weight, data->kernel.array,
+			  data->kernel.num * sizeof(float));
+
+	gs_eparam_t *offset = gs_effect_get_param_by_name(effect, "offset");
+	gs_effect_set_val(offset, data->offset.array,
+			  data->offset.num * sizeof(float));
+
+	const int k_size = (int)data->kernel_size;
+	gs_eparam_t *kernel_size =
+		gs_effect_get_param_by_name(effect, "kernel_size");
+	gs_effect_set_int(kernel_size, k_size);
+
+	gs_eparam_t *texel_step =
+		gs_effect_get_param_by_name(effect, "texel_step");
+	struct vec2 direction;
+
+	// 1. Single pass- blur only in one direction
+	float rads = -data->angle * (M_PI / 180.0f);
+	direction.x = (float)cos(rads) / data->width;
+	direction.y = (float)sin(rads) / data->height;
+	gs_effect_set_vec2(texel_step, &direction);
+
+	set_blending_parameters();
+	//set_render_parameters();
+
+	data->output_texrender =
+		create_or_reset_texrender(data->output_texrender);
+
+	if (gs_texrender_begin(data->output_texrender, data->width,
+			       data->height)) {
+		while (gs_effect_loop(effect, "Draw"))
+			gs_draw_sprite(texture, 0, data->width, data->height);
+		gs_texrender_end(data->output_texrender);
+	}
+
+	gs_blend_state_pop();
+}
+
+/*
+ *  Performs a zoom blur using the gaussian kernel. Blur for a pixel
+ *  is performed in direction of zoom center point.
+ */
+static void gaussian_zoom_blur(struct composite_blur_filter_data *data)
+{
+	gs_effect_t *effect = data->radial_effect;
+	gs_effect_t *composite_effect = data->composite_effect;
+
+	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
+
+	if (!effect || !texture) {
+		return;
+	}
+
+	texture = blend_composite(texture, data);
+
+	gs_eparam_t *image = gs_effect_get_param_by_name(effect, "image");
+	gs_effect_set_texture(image, texture);
+
+	gs_eparam_t *weight = gs_effect_get_param_by_name(effect, "weight");
+
+	gs_effect_set_val(weight, data->kernel.array,
+			  data->kernel.num * sizeof(float));
+
+	gs_eparam_t *offset = gs_effect_get_param_by_name(effect, "offset");
+	gs_effect_set_val(offset, data->offset.array,
+			  data->offset.num * sizeof(float));
+
+	const int k_size = (int)data->kernel_size;
+	gs_eparam_t *kernel_size =
+		gs_effect_get_param_by_name(effect, "kernel_size");
+	gs_effect_set_int(kernel_size, k_size);
+
+	gs_eparam_t *radial_center =
+		gs_effect_get_param_by_name(effect, "radial_center");
+
+	struct vec2 coord;
+
+	coord.x = data->center_x;
+	coord.y = data->center_y;
+
+	// 1. Single pass- blur only in one direction
+	gs_effect_set_vec2(radial_center, &coord);
+
+	gs_eparam_t *uv_size = gs_effect_get_param_by_name(effect, "uv_size");
+
+	struct vec2 size;
+	size.x = (float)data->width;
+	size.y = (float)data->height;
+
+	gs_effect_set_vec2(uv_size, &size);
 
 	set_blending_parameters();
 	//set_render_parameters();

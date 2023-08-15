@@ -7,3 +7,5 @@
 extern void render_video_gaussian(struct composite_blur_filter_data *data);
 static void gaussian_area_blur(struct composite_blur_filter_data *data);
 static void gaussian_directional_blur(struct composite_blur_filter_data *data);
+static void gaussian_zoom_blur(struct composite_blur_filter_data *data);
+static void gaussian_motion_blur(struct composite_blur_filter_data *data);
