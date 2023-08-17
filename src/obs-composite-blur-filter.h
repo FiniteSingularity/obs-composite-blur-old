@@ -8,7 +8,6 @@
 #include <util/platform.h>
 
 #include <stdio.h>
-#include "kernel.h"
 
 #include "obs-utils.h"
 #include "blur/gaussian.h"

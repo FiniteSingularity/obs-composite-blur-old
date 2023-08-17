@@ -29,7 +29,7 @@ void update_gaussian(struct composite_blur_filter_data *data)
 {
 	if (data->radius != data->radius_last) {
 		data->radius_last = data->radius;
-		calculate_kernel(data->radius, data);
+		sample_kernel(data->radius, data);
 	}
 }
 
@@ -400,8 +400,8 @@ load_radial_gaussian_effect(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void calculate_kernel(float radius,
-			     struct composite_blur_filter_data *filter)
+static void sample_kernel(float radius,
+			  struct composite_blur_filter_data *filter)
 {
 	const size_t max_size = 128;
 	const float max_radius = 250.0;
@@ -419,7 +419,8 @@ static void calculate_kernel(float radius,
 
 	// 1. Calculate discrete weights
 	const float bins_per_pixel =
-		((2.f * (float)kernel_size - 1.f)) / (1.f + 2.f * radius);
+		((2.f * (float)gaussian_kernel_size - 1.f)) /
+		(1.f + 2.f * radius);
 	size_t current_bin = 0;
 	float fractional_bin = 0.5f;
 	float ceil_radius = (radius - (float)floor(radius)) < 0.001f
@@ -434,20 +435,21 @@ static void calculate_kernel(float radius,
 						 ? 1.0f
 						 : fractional_extra;
 		float bpp_mult = i == 0 ? 0.5f : 1.0f;
-		float weight =
-			1.0f / bpp_mult * fractional_bin * kernel[current_bin];
+		float weight = 1.0f / bpp_mult * fractional_bin *
+			       gaussian_kernel[current_bin];
 		float remaining_bins =
 			bpp_mult * fractional_pixel * bins_per_pixel -
 			fractional_bin;
 		while ((int)floor(remaining_bins) > 0) {
 			current_bin++;
-			weight += 1.0f / bpp_mult * kernel[current_bin];
+			weight +=
+				1.0f / bpp_mult * gaussian_kernel[current_bin];
 			remaining_bins -= 1.f;
 		}
 		current_bin++;
 		if (remaining_bins > 1.e-6f) {
-			weight += 1.0f / bpp_mult * kernel[current_bin] *
-				  remaining_bins;
+			weight += 1.0f / bpp_mult *
+				  gaussian_kernel[current_bin] * remaining_bins;
 			fractional_bin = 1.0f - remaining_bins;
 		} else {
 			fractional_bin = 1.0f;

@@ -15,6 +15,7 @@ void set_box_blur_types(obs_properties_t *props)
 	obs_property_list_add_int(p, obs_module_text(TYPE_TILTSHIFT_LABEL),
 				  TYPE_TILTSHIFT);
 }
+
 void box_setup_callbacks(struct composite_blur_filter_data *data)
 {
 	data->video_render = render_video_box;
