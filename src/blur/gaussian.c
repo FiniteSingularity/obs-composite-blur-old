@@ -2,7 +2,7 @@
 
 void set_gaussian_blur_types(obs_properties_t *props)
 {
-	obs_log(LOG_INFO, "set gaussian blur types...");
+	blog(LOG_INFO, "set gaussian blur types...");
 	obs_property_t *p = obs_properties_get(props, "blur_type");
 	obs_property_list_clear(p);
 	obs_property_list_add_int(p, obs_module_text(TYPE_AREA_LABEL),
@@ -455,9 +455,9 @@ static void sample_kernel(float radius,
 			fractional_bin = 1.0f;
 		}
 		if (weight > 1.0001f || weight < 0.0f) {
-			obs_log(LOG_WARNING,
-				"   === BAD WEIGHT VALUE FOR GAUSSIAN === [%d] %f",
-				weights.num + 1, weight);
+			blog(LOG_WARNING,
+			     "   === BAD WEIGHT VALUE FOR GAUSSIAN === [%d] %f",
+			     weights.num + 1, weight);
 			weight = 0.0;
 		}
 		da_push_back(d_weights, &weight);

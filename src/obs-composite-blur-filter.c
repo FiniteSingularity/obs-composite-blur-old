@@ -1,4 +1,4 @@
-#include <obs-composite-blur-filter.h>
+#include "obs-composite-blur-filter.h"
 
 struct obs_source_info obs_composite_blur = {
 	.id = "obs_composite_blur",
@@ -95,13 +95,13 @@ static uint32_t composite_blur_height(void *data)
 static void composite_blur_update(void *data, obs_data_t *settings)
 {
 	struct composite_blur_filter_data *filter = data;
-	obs_log(LOG_INFO, "Composite Blur Update");
+	blog(LOG_INFO, "Composite Blur Update");
 
 	filter->blur_algorithm =
 		(int)obs_data_get_int(settings, "blur_algorithm");
 
 	if (filter->blur_algorithm != filter->blur_algorithm_last) {
-		obs_log(LOG_INFO, "Blur algorithm changed.");
+		blog(LOG_INFO, "Blur algorithm changed.");
 		filter->blur_algorithm_last = filter->blur_algorithm;
 		filter->reload = true;
 	}
@@ -109,7 +109,7 @@ static void composite_blur_update(void *data, obs_data_t *settings)
 	filter->blur_type = (int)obs_data_get_int(settings, "blur_type");
 
 	if (filter->blur_type != filter->blur_type_last) {
-		obs_log(LOG_INFO, "Blur type changed.");
+		blog(LOG_INFO, "Blur type changed.");
 		filter->blur_type_last = filter->blur_type;
 		filter->reload = true;
 	}
@@ -138,10 +138,10 @@ static void composite_blur_update(void *data, obs_data_t *settings)
 		filter->background = NULL;
 	}
 
-	obs_log(LOG_INFO, "UPDATE, Algo: %i", filter->blur_algorithm);
+	blog(LOG_INFO, "UPDATE, Algo: %i", filter->blur_algorithm);
 	if (filter->reload) {
 		filter->reload = false;
-		obs_log(LOG_INFO, "UPDATE, reload: %i", filter->reload);
+		blog(LOG_INFO, "UPDATE, reload: %i", filter->reload);
 		composite_blur_reload_effect(filter);
 		obs_source_update_properties(filter->context);
 	}
@@ -417,7 +417,7 @@ static void composite_blur_video_tick(void *data, float seconds)
 static void
 composite_blur_reload_effect(struct composite_blur_filter_data *filter)
 {
-	obs_log(LOG_INFO, "Reload...");
+	blog(LOG_INFO, "Reload...");
 	filter->reload = false;
 	obs_data_t *settings = obs_source_get_settings(filter->context);
 	filter->param_uv_size = NULL;
@@ -458,10 +458,10 @@ static void load_composite_effect(struct composite_blur_filter_data *filter)
 
 	bfree(shader_text);
 	if (filter->composite_effect == NULL) {
-		obs_log(LOG_WARNING,
-			"[obs-composite-blur] Unable to load composite.effect file.  Errors:\n%s",
-			(errors == NULL || strlen(errors) == 0 ? "(None)"
-							       : errors));
+		blog(LOG_WARNING,
+		     "[obs-composite-blur] Unable to load composite.effect file.  Errors:\n%s",
+		     (errors == NULL || strlen(errors) == 0 ? "(None)"
+							    : errors));
 		bfree(errors);
 	} else {
 		size_t effect_count =

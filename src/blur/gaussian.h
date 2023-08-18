@@ -2,8 +2,8 @@
 
 #include <math.h>
 #include <obs-module.h>
-#include <obs-utils.h>
-#include <obs-composite-blur-filter.h>
+#include "../obs-utils.h"
+#include "../obs-composite-blur-filter.h"
 #include "gaussian-kernel.h"
 
 extern void set_gaussian_blur_types(obs_properties_t *props);

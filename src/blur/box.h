@@ -2,8 +2,8 @@
 
 #include <math.h>
 #include <obs-module.h>
-#include <obs-utils.h>
-#include <obs-composite-blur-filter.h>
+#include "../obs-utils.h"
+#include "../obs-composite-blur-filter.h"
 
 extern void set_box_blur_types(obs_properties_t *props);
 extern void box_setup_callbacks(struct composite_blur_filter_data *data);

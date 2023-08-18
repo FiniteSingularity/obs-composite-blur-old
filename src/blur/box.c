@@ -318,7 +318,7 @@ static void box_tilt_shift_blur(struct composite_blur_filter_data *data)
 		direction.x = 1.0f / data->width;
 		direction.y = 0.0f;
 
-		// obs_log(LOG_INFO, "%f, %f, %f, %f, %f", radius, bottom, top,
+		// blog(LOG_INFO, "%f, %f, %f, %f, %f", radius, bottom, top,
 		// 	direction.x, direction.y);
 
 		gs_effect_set_vec2(texel_step, &direction);
