@@ -2,9 +2,9 @@ name: build obs plugin
 
 on:
   push:
-    branches: [ main, feature/build-28.0.0-beta1 ]
+    branches: [main, feature/build-28.0.0-beta1]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   PLUGIN_NAME: obs-composite-blur
@@ -20,9 +20,9 @@ jobs:
     outputs:
       commitHash: ${{ steps.setup.outputs.commitHash }}
     env:
-      CODESIGN_IDENT: '-'
-      CODESIGN_IDENT_INSTALLER: ''
-      MACOSX_DEPLOYMENT_TARGET: '10.15'  
+      CODESIGN_IDENT: "-"
+      CODESIGN_IDENT_INSTALLER: ""
+      MACOSX_DEPLOYMENT_TARGET: "10.15"
     defaults:
       run:
         shell: zsh {0}
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout obs-studio
         uses: actions/checkout@v3
         with:
-          repository: 'obsproject/obs-studio'
+          repository: "obsproject/obs-studio"
           path: obs-studio
           fetch-depth: 0
           submodules: recursive
@@ -115,7 +115,7 @@ jobs:
           workingDirectory: ${{ github.workspace }}/plugin
           target: ${{ matrix.arch }}
           config: RelWithDebInfo
-          codesign: 'true'
+          codesign: "true"
           codesignIdent: ${{ env.CODESIGN_IDENT }}
 
       - name: Package Plugin
@@ -137,19 +137,19 @@ jobs:
           name: ${{ env.PLUGIN_NAME }}-macos-${{ matrix.arch }}-${{ steps.setup.outputs.commitHash }}
           path: ${{ github.workspace }}/plugin/release/${{ env.PLUGIN_NAME }}-*-macos-${{ matrix.arch }}.pkg
   linux-in-tree:
-    name: 'Linux'
+    name: "Linux"
     runs-on: ${{ matrix.ubuntu }}
     strategy:
       fail-fast: false
       matrix:
-        ubuntu: ['ubuntu-20.04', 'ubuntu-22.04']
+        ubuntu: ["ubuntu-20.04", "ubuntu-22.04"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0
         with:
           repository: obsproject/obs-studio
           ref: ${{ env.OBS_VERSION }}
-          submodules: 'recursive'
+          submodules: "recursive"
       - name: "Checkout plugin"
         uses: actions/checkout@v3.1.0
         with:
@@ -159,18 +159,18 @@ jobs:
         run: echo "add_subdirectory(${{ env.PLUGIN_NAME }})" >> plugins/CMakeLists.txt
       - name: Fetch Git Tags
         run: git fetch --prune --tags --unshallow
-      - name: 'Install dependencies'
+      - name: "Install dependencies"
         run: CI/linux/01_install_dependencies.sh --disable-pipewire
-      - name: 'Configure'
+      - name: "Configure"
         shell: bash
         run: |
           mkdir ./build
           cmake -S . -B "./build" -G Ninja -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLINUX_PORTABLE=OFF -DENABLE_AJA=OFF -DENABLE_NEW_MPEGTS_OUTPUT=OFF -DBUILD_CAPTIONS=OFF -DWITH_RTMPS=OFF -DBUILD_BROWSER=OFF -DBUILD_VIRTUALCAM=OFF -DBUILD_VST=OFF -DENABLE_PIPEWIRE=OFF -DENABLE_SCRIPTING=OFF
-      - name: 'Build'
+      - name: "Build"
         shell: bash
         run: |
           cmake --build "./build"
-      - name: 'Package'
+      - name: "Package"
         shell: bash
         run: |
           FILE_DATE=$(date +%Y-%m-%d)
@@ -180,13 +180,13 @@ jobs:
           mv ./build/plugins/${{ env.PLUGIN_NAME }}/${{ env.PLUGIN_NAME }}.so ./${{ env.PLUGIN_NAME }}/bin/64bit/${{ env.PLUGIN_NAME }}.so
           mv ./plugins/${{ env.PLUGIN_NAME }}/data ./${{ env.PLUGIN_NAME }}/data
           tar -cvzf "${FILE_NAME}" ${{ env.PLUGIN_NAME }}
-      - name: 'Publish'
+      - name: "Publish"
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: '${{ env.FILE_NAME }}'
-          path: '*.tar.gz'
+          name: "${{ env.FILE_NAME }}"
+          path: "*.tar.gz"
   windows-build:
-    name: 'Windows Build'
+    name: "Windows Build"
     runs-on: [windows-latest]
     strategy:
       fail-fast: true
@@ -194,16 +194,16 @@ jobs:
         target: [x64, x86]
         include:
           - target: x64
-            cmake_build: 'x64'
-            deps_ext: '64'
+            cmake_build: "x64"
+            deps_ext: "64"
           - target: x86
-            cmake_build: 'Win32'
-            deps_ext: '32'
+            cmake_build: "Win32"
+            deps_ext: "32"
     env:
-      QT_VERSION: '6.3.1'
+      QT_VERSION: "6.3.1"
       CMAKE_GENERATOR: "Visual Studio 17 2022"
       CMAKE_SYSTEM_VERSION: "10.0.18363.657"
-      WINDOWS_DEPS_VERSION: '2022-08-02'
+      WINDOWS_DEPS_VERSION: "2022-08-02"
     steps:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1.3
@@ -212,7 +212,7 @@ jobs:
         with:
           repository: obsproject/obs-studio
           ref: ${{ env.OBS_VERSION }}
-          submodules: 'recursive'
+          submodules: "recursive"
       - name: Checkout plugin
         uses: actions/checkout@v3.1.0
         with:
@@ -222,11 +222,11 @@ jobs:
         run: echo add_subdirectory(${{ env.PLUGIN_NAME }}) >> plugins/CMakeLists.txt
       - name: Fetch Git Tags
         run: git fetch --prune --tags --unshallow
-      - name: 'Install prerequisite: QT'
+      - name: "Install prerequisite: QT"
         run: |
           curl -kLO https://github.com/obsproject/obs-deps/releases/download/${{ env.WINDOWS_DEPS_VERSION }}/windows-deps-qt6-${{ env.WINDOWS_DEPS_VERSION }}-${{ matrix.target }}.zip -f --retry 5 -C -
           7z x windows-deps-qt6-${{ env.WINDOWS_DEPS_VERSION }}-${{ matrix.target }}.zip -o"${{ github.workspace }}/cmbuild/deps"
-      - name: 'Install prerequisite: Pre-built dependencies'
+      - name: "Install prerequisite: Pre-built dependencies"
         run: |
           curl -kLO https://github.com/obsproject/obs-deps/releases/download/${{ env.WINDOWS_DEPS_VERSION }}/windows-deps-${{ env.WINDOWS_DEPS_VERSION }}-${{ matrix.target }}.zip -f --retry 5 -C -
           7z x windows-deps-${{ env.WINDOWS_DEPS_VERSION }}-${{ matrix.target }}.zip -o"${{ github.workspace }}/cmbuild/deps"
@@ -237,7 +237,7 @@ jobs:
           mkdir ./installer/media
           mkdir ./build
           cmake -S . -B "${{ github.workspace }}/build" -G"${{ env.CMAKE_GENERATOR }}" -DCMAKE_PREFIX_PATH:PATH="${{ github.workspace }}/cmbuild/deps" -A"${{ matrix.cmake_build }}" -DCMAKE_SYSTEM_VERSION="${{ env.CMAKE_SYSTEM_VERSION }}" -DBUILD_BROWSER=false -DBUILD_VST=false -DBUILD_VIRTUALCAM=false -DBUILD_CAPTIONS=false -DCOMPILE_D3D12_HOOK=false -DENABLE_SCRIPTING=false -DDepsPath="${{ github.workspace }}/cmbuild/deps" -DDepsPath${{ matrix.deps_ext }}="${{ github.workspace }}/cmbuild/deps" -DQTDIR="${{ github.workspace }}/cmbuild/deps/qt6" -DCOPIED_DEPENDENCIES=FALSE -DCOPY_DEPENDENCIES=TRUE -DENABLE_PLUGINS=TRUE -DDISABLE_PLUGINS=FALSE -DENABLE_BROWSER=FALSE -DENABLE_WEBSOCKET=FALSE
-      - name: 'Build'
+      - name: "Build"
         run: msbuild /m /p:Configuration=RelWithDebInfo .\build\obs-studio.sln
       - name: Package
         if: success()
@@ -253,16 +253,16 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: '${{ env.FILE_NAME }}'
+          name: "${{ env.FILE_NAME }}"
           path: package/*
       - name: Publish Installer Files
         if: success()
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: 'installer-files'
+          name: "installer-files"
           path: installer/*
   windows-package:
-    name: 'Windows Package'
+    name: "Windows Package"
     runs-on: [windows-latest]
     needs: [windows-build]
     steps:
@@ -280,17 +280,17 @@ jobs:
       - name: Retrieve x86 build
         uses: actions/download-artifact@v3.0.1
         with:
-          name: '${{ env.FILE_NAME_X86 }}'
+          name: "${{ env.FILE_NAME_X86 }}"
           path: ./package
       - name: Retrieve x64 build
         uses: actions/download-artifact@v3.0.1
         with:
-          name: '${{ env.FILE_NAME_X64 }}'
+          name: "${{ env.FILE_NAME_X64 }}"
           path: ./package
       - name: Retrieve installer files
         uses: actions/download-artifact@v3.0.1
         with:
-          name: 'installer-files'
+          name: "installer-files"
           path: .
       - name: Create Code Signing Certificate
         if: false && github.event_name != 'pull_request'
@@ -310,7 +310,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: '${{ env.FILE_NAME }}'
+          name: "${{ env.FILE_NAME }}"
           path: package/*
       - name: "Package Installer (Prereqs)"
         run: |
@@ -328,7 +328,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: '${{ env.FILE_NAME }}-installer'
+          name: "${{ env.FILE_NAME }}-installer"
           path: package/*.exe
       - name: Remove temp artifacts
         uses: geekyeggo/delete-artifact@v2.0.0

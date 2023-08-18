@@ -1,5 +1,8 @@
 #include "obs-composite-blur-filter.h"
 
+#include "blur/gaussian.h"
+#include "blur/box.h"
+
 struct obs_source_info obs_composite_blur = {
 	.id = "obs_composite_blur",
 	.type = OBS_SOURCE_TYPE_FILTER,
@@ -22,8 +25,8 @@ static const char *composite_blur_name(void *unused)
 
 static void *composite_blur_create(obs_data_t *settings, obs_source_t *source)
 {
-	struct composite_blur_filter_data *filter =
-		bzalloc(sizeof(struct composite_blur_filter_data));
+	composite_blur_filter_data_t *filter =
+		bzalloc(sizeof(composite_blur_filter_data_t));
 	filter->context = source;
 	filter->radius = 0.0f;
 	filter->radius_last = -1.0f;
@@ -151,7 +154,7 @@ static void composite_blur_update(void *data, obs_data_t *settings)
 	}
 }
 
-static void get_input_source(struct composite_blur_filter_data *filter)
+static void get_input_source(composite_blur_filter_data_t *filter)
 {
 	gs_effect_t *pass_through = obs_get_base_effect(OBS_EFFECT_DEFAULT);
 
@@ -175,7 +178,7 @@ static void get_input_source(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void draw_output_to_source(struct composite_blur_filter_data *filter)
+static void draw_output_to_source(composite_blur_filter_data_t *filter)
 {
 	gs_texture_t *texture =
 		gs_texrender_get_texture(filter->output_texrender);
@@ -299,8 +302,6 @@ static obs_properties_t *composite_blur_properties(void *data)
 		obs_module_text("CompositeBlurFilter.TiltShift"),
 		OBS_GROUP_NORMAL, tilt_shift_bounds);
 
-	struct dstr sources_name = {0};
-
 	obs_property_t *p = obs_properties_add_list(
 		props, "background",
 		obs_module_text("CompositeBlurFilter.Background"),
@@ -316,7 +317,8 @@ static bool setting_blur_algorithm_modified(void *data, obs_properties_t *props,
 					    obs_property_t *p,
 					    obs_data_t *settings)
 {
-	struct composite_blur_filter_data *filter = data;
+	UNUSED_PARAMETER(p);
+	UNUSED_PARAMETER(data);
 	int blur_algorithm = (int)obs_data_get_int(settings, "blur_algorithm");
 	switch (blur_algorithm) {
 	case ALGO_GAUSSIAN:
@@ -337,7 +339,8 @@ static bool setting_blur_algorithm_modified(void *data, obs_properties_t *props,
 static bool setting_blur_types_modified(void *data, obs_properties_t *props,
 					obs_property_t *p, obs_data_t *settings)
 {
-	struct composite_blur_filter_data *filter = data;
+	UNUSED_PARAMETER(p);
+	UNUSED_PARAMETER(data);
 	int blur_type = (int)obs_data_get_int(settings, "blur_type");
 	if (blur_type == TYPE_AREA) {
 		return settings_blur_area(props);
@@ -403,7 +406,8 @@ static bool settings_blur_tilt_shift(obs_properties_t *props)
 
 static void composite_blur_video_tick(void *data, float seconds)
 {
-	struct composite_blur_filter_data *filter = data;
+	UNUSED_PARAMETER(seconds);
+	composite_blur_filter_data_t *filter = data;
 	obs_source_t *target = obs_filter_get_target(filter->context);
 	if (!target) {
 		return;
@@ -415,7 +419,7 @@ static void composite_blur_video_tick(void *data, float seconds)
 }
 
 static void
-composite_blur_reload_effect(struct composite_blur_filter_data *filter)
+composite_blur_reload_effect(composite_blur_filter_data_t *filter)
 {
 	blog(LOG_INFO, "Reload...");
 	filter->reload = false;
@@ -436,7 +440,7 @@ composite_blur_reload_effect(struct composite_blur_filter_data *filter)
 	obs_data_release(settings);
 }
 
-static void load_composite_effect(struct composite_blur_filter_data *filter)
+static void load_composite_effect(composite_blur_filter_data_t *filter)
 {
 	if (filter->composite_effect != NULL) {
 		obs_enter_graphics();
