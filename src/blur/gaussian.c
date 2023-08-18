@@ -457,7 +457,7 @@ static void sample_kernel(float radius,
 		if (weight > 1.0001f || weight < 0.0f) {
 			blog(LOG_WARNING,
 			     "   === BAD WEIGHT VALUE FOR GAUSSIAN === [%d] %f",
-			     weights.num + 1, weight);
+			     (int)(weights.num + 1), weight);
 			weight = 0.0;
 		}
 		da_push_back(d_weights, &weight);

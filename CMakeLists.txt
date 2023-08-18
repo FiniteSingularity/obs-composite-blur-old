@@ -77,11 +77,3 @@ else()
     set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "plugins/finitesingularity")
 endif()
 setup_plugin_target(${PROJECT_NAME})
-
-
-
-
-
-
-
-
