@@ -1,5 +1,7 @@
 #include <obs-composite-blur-filter.h>
 
+#include <shims/util/dstr.h>
+
 #include "blur/gaussian.h"
 #include "blur/box.h"
 

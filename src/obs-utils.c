@@ -1,5 +1,8 @@
 #include <obs-utils.h>
 
+#include <shims/util/dstr.h>
+#include <shims/util/platform.h>
+
 gs_texrender_t *create_or_reset_texrender(gs_texrender_t *render)
 {
 	if (!render) {
