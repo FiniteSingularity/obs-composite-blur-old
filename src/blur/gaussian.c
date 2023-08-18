@@ -1,5 +1,7 @@
 #include "gaussian.h"
 
+#include <math.h>
+
 void set_gaussian_blur_types(obs_properties_t *props)
 {
 	obs_log(LOG_INFO, "set gaussian blur types...");
@@ -415,7 +417,7 @@ static void sample_kernel(float radius,
 	da_init(weights);
 
 	radius *= 3.0f;
-	radius = max(min(radius, max_radius), min_radius);
+	radius = fmaxf(fminf(radius, max_radius), min_radius);
 
 	// 1. Calculate discrete weights
 	const float bins_per_pixel =
