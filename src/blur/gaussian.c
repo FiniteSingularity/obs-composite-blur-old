@@ -78,7 +78,6 @@ void load_effect_gaussian(composite_blur_filter_data_t *filter)
 static void gaussian_area_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -156,7 +155,6 @@ static void gaussian_area_blur(composite_blur_filter_data_t *data)
 static void gaussian_directional_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -215,7 +213,6 @@ static void gaussian_directional_blur(composite_blur_filter_data_t *data)
 static void gaussian_motion_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -275,7 +272,6 @@ static void gaussian_motion_blur(composite_blur_filter_data_t *data)
 static void gaussian_zoom_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -405,7 +401,6 @@ static void sample_kernel(float radius, composite_blur_filter_data_t *filter)
 	const size_t max_size = 128;
 	const float max_radius = 250.0;
 	const float min_radius = 0.0;
-	size_t d_kernel_size = 0;
 
 	fDarray d_weights;
 	da_init(d_weights);
@@ -428,7 +423,6 @@ static void sample_kernel(float radius, composite_blur_filter_data_t *filter)
 	float fractional_extra = 1.0f - (ceil_radius - radius);
 
 	for (int i = 0; i <= (int)ceil_radius; i++) {
-		float cur_radius = (float)i;
 		float fractional_pixel = i < (int)ceil_radius ? 1.0f
 					 : fractional_extra < 0.002f
 						 ? 1.0f

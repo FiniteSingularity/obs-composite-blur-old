@@ -1,3 +1,4 @@
+#include <libobs/util/c99defs.h>
 #include <obs-composite-blur-filter.h>
 
 #include <shims/util/dstr.h>
@@ -304,8 +305,6 @@ static obs_properties_t *composite_blur_properties(void *data)
 		obs_module_text("CompositeBlurFilter.TiltShift"),
 		OBS_GROUP_NORMAL, tilt_shift_bounds);
 
-	struct dstr sources_name = {0};
-
 	obs_property_t *p = obs_properties_add_list(
 		props, "background",
 		obs_module_text("CompositeBlurFilter.Background"),
@@ -321,7 +320,8 @@ static bool setting_blur_algorithm_modified(void *data, obs_properties_t *props,
 					    obs_property_t *p,
 					    obs_data_t *settings)
 {
-	struct composite_blur_filter_data *filter = data;
+	UNUSED_PARAMETER(p);
+	UNUSED_PARAMETER(data);
 	int blur_algorithm = (int)obs_data_get_int(settings, "blur_algorithm");
 	switch (blur_algorithm) {
 	case ALGO_GAUSSIAN:
@@ -342,7 +342,8 @@ static bool setting_blur_algorithm_modified(void *data, obs_properties_t *props,
 static bool setting_blur_types_modified(void *data, obs_properties_t *props,
 					obs_property_t *p, obs_data_t *settings)
 {
-	struct composite_blur_filter_data *filter = data;
+	UNUSED_PARAMETER(data);
+	UNUSED_PARAMETER(p);
 	int blur_type = (int)obs_data_get_int(settings, "blur_type");
 	if (blur_type == TYPE_AREA) {
 		return settings_blur_area(props);
@@ -408,6 +409,7 @@ static bool settings_blur_tilt_shift(obs_properties_t *props)
 
 static void composite_blur_video_tick(void *data, float seconds)
 {
+	UNUSED_PARAMETER(seconds);
 	struct composite_blur_filter_data *filter = data;
 	obs_source_t *target = obs_filter_get_target(filter->context);
 	if (!target) {

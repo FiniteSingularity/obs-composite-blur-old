@@ -66,7 +66,6 @@ void load_effect_box(composite_blur_filter_data_t *filter)
 static void box_area_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -142,7 +141,6 @@ static void box_area_blur(composite_blur_filter_data_t *data)
 static void box_directional_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -201,7 +199,6 @@ static void box_directional_blur(composite_blur_filter_data_t *data)
 static void box_zoom_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
@@ -224,9 +221,6 @@ static void box_zoom_blur(composite_blur_filter_data_t *data)
 		gs_eparam_t *radius_param =
 			gs_effect_get_param_by_name(effect, "radius");
 		gs_effect_set_float(radius_param, radius);
-
-		gs_eparam_t *texel_step =
-			gs_effect_get_param_by_name(effect, "texel_step");
 
 		gs_eparam_t *radial_center =
 			gs_effect_get_param_by_name(effect, "radial_center");
@@ -273,7 +267,6 @@ static void box_zoom_blur(composite_blur_filter_data_t *data)
 static void box_tilt_shift_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
-	gs_effect_t *composite_effect = data->composite_effect;
 
 	gs_texture_t *texture = gs_texrender_get_texture(data->input_texrender);
 
