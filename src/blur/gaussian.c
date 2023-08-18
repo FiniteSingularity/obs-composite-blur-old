@@ -415,7 +415,7 @@ static void sample_kernel(float radius,
 	da_init(weights);
 
 	radius *= 3.0f;
-	radius = max(min(radius, max_radius), min_radius);
+	radius = (float)fmax(fmin(radius, max_radius), min_radius);
 
 	// 1. Calculate discrete weights
 	const float bins_per_pixel =
