@@ -1,5 +1,8 @@
 #include <obs-composite-blur-filter.h>
 
+#include "blur/gaussian.h"
+#include "blur/box.h"
+
 struct obs_source_info obs_composite_blur = {
 	.id = "obs_composite_blur",
 	.type = OBS_SOURCE_TYPE_FILTER,

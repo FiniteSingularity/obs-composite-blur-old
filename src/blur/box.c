@@ -16,14 +16,14 @@ void set_box_blur_types(obs_properties_t *props)
 				  TYPE_TILTSHIFT);
 }
 
-void box_setup_callbacks(struct composite_blur_filter_data *data)
+void box_setup_callbacks(composite_blur_filter_data_t *data)
 {
 	data->video_render = render_video_box;
 	data->load_effect = load_effect_box;
 	data->update = NULL;
 }
 
-void render_video_box(struct composite_blur_filter_data *data)
+void render_video_box(composite_blur_filter_data_t *data)
 {
 	switch (data->blur_type) {
 	case TYPE_AREA:
@@ -41,7 +41,7 @@ void render_video_box(struct composite_blur_filter_data *data)
 	}
 }
 
-void load_effect_box(struct composite_blur_filter_data *filter)
+void load_effect_box(composite_blur_filter_data_t *filter)
 {
 	switch (filter->blur_type) {
 	case TYPE_AREA:
@@ -63,7 +63,7 @@ void load_effect_box(struct composite_blur_filter_data *filter)
  *  Performs an area blur using the box kernel.  Blur is
  *  equal in both x and y directions.
  */
-static void box_area_blur(struct composite_blur_filter_data *data)
+static void box_area_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -139,7 +139,7 @@ static void box_area_blur(struct composite_blur_filter_data *data)
 /*
  *  Performs a directional blur using the gaussian kernel.
  */
-static void box_directional_blur(struct composite_blur_filter_data *data)
+static void box_directional_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -198,7 +198,7 @@ static void box_directional_blur(struct composite_blur_filter_data *data)
  *  Performs a zoom blur using the gaussian kernel. Blur for a pixel
  *  is performed in direction of zoom center point.
  */
-static void box_zoom_blur(struct composite_blur_filter_data *data)
+static void box_zoom_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -270,7 +270,7 @@ static void box_zoom_blur(struct composite_blur_filter_data *data)
  *  Performs an area blur using the box kernel.  Blur is
  *  equal in both x and y directions.
  */
-static void box_tilt_shift_blur(struct composite_blur_filter_data *data)
+static void box_tilt_shift_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -369,7 +369,7 @@ static void box_tilt_shift_blur(struct composite_blur_filter_data *data)
 	}
 }
 
-static void load_1d_box_effect(struct composite_blur_filter_data *filter)
+static void load_1d_box_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/box_1d.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -390,7 +390,7 @@ static void load_1d_box_effect(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void load_tiltshift_box_effect(struct composite_blur_filter_data *filter)
+static void load_tiltshift_box_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/box_tiltshift.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -411,7 +411,7 @@ static void load_tiltshift_box_effect(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void load_radial_box_effect(struct composite_blur_filter_data *filter)
+static void load_radial_box_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/box_radial.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);

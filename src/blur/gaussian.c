@@ -20,14 +20,14 @@ void set_gaussian_blur_types(obs_properties_t *props)
 	// 			  TYPE_TILTSHIFT);
 }
 
-void gaussian_setup_callbacks(struct composite_blur_filter_data *data)
+void gaussian_setup_callbacks(composite_blur_filter_data_t *data)
 {
 	data->video_render = render_video_gaussian;
 	data->load_effect = load_effect_gaussian;
 	data->update = update_gaussian;
 }
 
-void update_gaussian(struct composite_blur_filter_data *data)
+void update_gaussian(composite_blur_filter_data_t *data)
 {
 	if (data->radius != data->radius_last) {
 		data->radius_last = data->radius;
@@ -35,7 +35,7 @@ void update_gaussian(struct composite_blur_filter_data *data)
 	}
 }
 
-void render_video_gaussian(struct composite_blur_filter_data *data)
+void render_video_gaussian(composite_blur_filter_data_t *data)
 {
 	switch (data->blur_type) {
 	case TYPE_AREA:
@@ -53,7 +53,7 @@ void render_video_gaussian(struct composite_blur_filter_data *data)
 	}
 }
 
-void load_effect_gaussian(struct composite_blur_filter_data *filter)
+void load_effect_gaussian(composite_blur_filter_data_t *filter)
 {
 	switch (filter->blur_type) {
 	case TYPE_AREA:
@@ -75,7 +75,7 @@ void load_effect_gaussian(struct composite_blur_filter_data *filter)
  *  Performs an area blur using the gaussian kernel.  Blur is
  *  equal in both x and y directions.
  */
-static void gaussian_area_blur(struct composite_blur_filter_data *data)
+static void gaussian_area_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -153,7 +153,7 @@ static void gaussian_area_blur(struct composite_blur_filter_data *data)
 /*
  *  Performs a directional blur using the gaussian kernel.
  */
-static void gaussian_directional_blur(struct composite_blur_filter_data *data)
+static void gaussian_directional_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -212,7 +212,7 @@ static void gaussian_directional_blur(struct composite_blur_filter_data *data)
 /*
  *  Performs a motion blur using the gaussian kernel.
  */
-static void gaussian_motion_blur(struct composite_blur_filter_data *data)
+static void gaussian_motion_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -272,7 +272,7 @@ static void gaussian_motion_blur(struct composite_blur_filter_data *data)
  *  Performs a zoom blur using the gaussian kernel. Blur for a pixel
  *  is performed in direction of zoom center point.
  */
-static void gaussian_zoom_blur(struct composite_blur_filter_data *data)
+static void gaussian_zoom_blur(composite_blur_filter_data_t *data)
 {
 	gs_effect_t *effect = data->effect;
 	gs_effect_t *composite_effect = data->composite_effect;
@@ -337,7 +337,7 @@ static void gaussian_zoom_blur(struct composite_blur_filter_data *data)
 	gs_blend_state_pop();
 }
 
-static void load_1d_gaussian_effect(struct composite_blur_filter_data *filter)
+static void load_1d_gaussian_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/gaussian_1d.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -358,8 +358,7 @@ static void load_1d_gaussian_effect(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void
-load_motion_gaussian_effect(struct composite_blur_filter_data *filter)
+static void load_motion_gaussian_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/gaussian_motion.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -380,8 +379,7 @@ load_motion_gaussian_effect(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void
-load_radial_gaussian_effect(struct composite_blur_filter_data *filter)
+static void load_radial_gaussian_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/gaussian_radial.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -402,8 +400,7 @@ load_radial_gaussian_effect(struct composite_blur_filter_data *filter)
 	}
 }
 
-static void sample_kernel(float radius,
-			  struct composite_blur_filter_data *filter)
+static void sample_kernel(float radius, composite_blur_filter_data_t *filter)
 {
 	const size_t max_size = 128;
 	const float max_radius = 250.0;
