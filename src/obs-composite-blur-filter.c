@@ -98,13 +98,11 @@ static uint32_t composite_blur_height(void *data)
 static void composite_blur_update(void *data, obs_data_t *settings)
 {
 	struct composite_blur_filter_data *filter = data;
-	blog(LOG_INFO, "Composite Blur Update");
 
 	filter->blur_algorithm =
 		(int)obs_data_get_int(settings, "blur_algorithm");
 
 	if (filter->blur_algorithm != filter->blur_algorithm_last) {
-		blog(LOG_INFO, "Blur algorithm changed.");
 		filter->blur_algorithm_last = filter->blur_algorithm;
 		filter->reload = true;
 	}
@@ -112,7 +110,6 @@ static void composite_blur_update(void *data, obs_data_t *settings)
 	filter->blur_type = (int)obs_data_get_int(settings, "blur_type");
 
 	if (filter->blur_type != filter->blur_type_last) {
-		blog(LOG_INFO, "Blur type changed.");
 		filter->blur_type_last = filter->blur_type;
 		filter->reload = true;
 	}
@@ -141,10 +138,8 @@ static void composite_blur_update(void *data, obs_data_t *settings)
 		filter->background = NULL;
 	}
 
-	blog(LOG_INFO, "UPDATE, Algo: %i", filter->blur_algorithm);
 	if (filter->reload) {
 		filter->reload = false;
-		blog(LOG_INFO, "UPDATE, reload: %i", filter->reload);
 		composite_blur_reload_effect(filter);
 		obs_source_update_properties(filter->context);
 	}
@@ -418,10 +413,8 @@ static void composite_blur_video_tick(void *data, float seconds)
 	filter->uv_size.y = (float)filter->height;
 }
 
-static void
-composite_blur_reload_effect(composite_blur_filter_data_t *filter)
+static void composite_blur_reload_effect(composite_blur_filter_data_t *filter)
 {
-	blog(LOG_INFO, "Reload...");
 	filter->reload = false;
 	obs_data_t *settings = obs_source_get_settings(filter->context);
 	filter->param_uv_size = NULL;

@@ -31,9 +31,9 @@ float4 mainImage(VertData v_in) : TARGET
     // calculate distance (in uv space) between coordinate and radial center.
     float dist = distance(v_in.uv, radial_center_uv);
     // calculate unit vector in direction of radial center to coordinate
+    // scale by uv size to get unit vector in pixels.
     float2 texel_step = normalize(v_in.uv - radial_center_uv)/uv_size;
 
-    // DO THE BLUR
     // 1. Sample incoming pixel, multiply by weight[0]
     float4 col = image.Sample(textureSampler, v_in.uv);
 

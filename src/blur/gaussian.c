@@ -2,7 +2,6 @@
 
 void set_gaussian_blur_types(obs_properties_t *props)
 {
-	blog(LOG_INFO, "set gaussian blur types...");
 	obs_property_t *p = obs_properties_get(props, "blur_type");
 	obs_property_list_clear(p);
 	obs_property_list_add_int(p, obs_module_text(TYPE_AREA_LABEL),
@@ -348,8 +347,7 @@ static void load_1d_gaussian_effect(composite_blur_filter_data_t *filter)
 	}
 }
 
-static void
-load_motion_gaussian_effect(composite_blur_filter_data_t *filter)
+static void load_motion_gaussian_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/gaussian_motion.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -370,8 +368,7 @@ load_motion_gaussian_effect(composite_blur_filter_data_t *filter)
 	}
 }
 
-static void
-load_radial_gaussian_effect(composite_blur_filter_data_t *filter)
+static void load_radial_gaussian_effect(composite_blur_filter_data_t *filter)
 {
 	const char *effect_file_path = "/shaders/gaussian_radial.effect";
 	filter->effect = load_shader_effect(filter->effect, effect_file_path);
@@ -392,8 +389,7 @@ load_radial_gaussian_effect(composite_blur_filter_data_t *filter)
 	}
 }
 
-static void sample_kernel(float radius,
-			  composite_blur_filter_data_t *filter)
+static void sample_kernel(float radius, composite_blur_filter_data_t *filter)
 {
 	const size_t max_size = 128;
 	const float max_radius = 250.0;

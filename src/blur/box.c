@@ -97,7 +97,6 @@ static void box_area_blur(composite_blur_filter_data_t *data)
 		gs_effect_set_vec2(texel_step, &direction);
 
 		set_blending_parameters();
-		//set_render_parameters();
 
 		if (gs_texrender_begin(data->render2, data->width,
 				       data->height)) {
@@ -135,7 +134,7 @@ static void box_area_blur(composite_blur_filter_data_t *data)
 }
 
 /*
- *  Performs a directional blur using the gaussian kernel.
+ *  Performs a directional blur using the box kernel.
  */
 static void box_directional_blur(composite_blur_filter_data_t *data)
 {
@@ -173,7 +172,6 @@ static void box_directional_blur(composite_blur_filter_data_t *data)
 		gs_effect_set_vec2(texel_step, &direction);
 
 		set_blending_parameters();
-		//set_render_parameters();
 
 		data->output_texrender =
 			create_or_reset_texrender(data->output_texrender);
@@ -191,8 +189,9 @@ static void box_directional_blur(composite_blur_filter_data_t *data)
 }
 
 /*
- *  Performs a zoom blur using the gaussian kernel. Blur for a pixel
- *  is performed in direction of zoom center point.
+ *  Performs a zoom blur using the box kernel. Blur for a pixel
+ *  is performed in direction of zoom center point.  Blur increases
+ *  as pixels move away from center point.
  */
 static void box_zoom_blur(composite_blur_filter_data_t *data)
 {
@@ -283,11 +282,6 @@ static void box_tilt_shift_blur(composite_blur_filter_data_t *data)
 			gs_effect_get_param_by_name(effect, "radius");
 		gs_effect_set_float(radius_param, radius);
 
-		const int radius_i = (int)data->radius;
-		gs_eparam_t *radius_i_param =
-			gs_effect_get_param_by_name(effect, "radius_i");
-		gs_effect_set_int(radius_i_param, radius_i);
-
 		const float bottom = 1.0f - (float)data->tilt_shift_bottom;
 		gs_eparam_t *bottom_param =
 			gs_effect_get_param_by_name(effect, "bottom");
@@ -307,9 +301,6 @@ static void box_tilt_shift_blur(composite_blur_filter_data_t *data)
 		direction.x = 1.0f / data->width;
 		direction.y = 0.0f;
 
-		// blog(LOG_INFO, "%f, %f, %f, %f, %f", radius, bottom, top,
-		// 	direction.x, direction.y);
-
 		gs_effect_set_vec2(texel_step, &direction);
 
 		gs_eparam_t *uv_size =
@@ -322,7 +313,6 @@ static void box_tilt_shift_blur(composite_blur_filter_data_t *data)
 		gs_effect_set_vec2(uv_size, &size);
 
 		set_blending_parameters();
-		//set_render_parameters();
 
 		if (gs_texrender_begin(data->render2, data->width,
 				       data->height)) {
