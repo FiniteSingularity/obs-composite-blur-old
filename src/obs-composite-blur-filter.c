@@ -31,6 +31,7 @@ static void *composite_blur_create(obs_data_t *settings, obs_source_t *source)
 	filter->radius = 0.0f;
 	filter->radius_last = -1.0f;
 	filter->angle = 0.0f;
+	filter->passes = 1;
 	filter->center_x = 0.0f;
 	filter->center_y = 0.0f;
 	filter->blur_algorithm = ALGO_NONE;
@@ -223,14 +224,16 @@ static obs_properties_t *composite_blur_properties(void *data)
 		props, "blur_algorithm",
 		obs_module_text("CompositeBlurFilter.BlurAlgorithm"),
 		OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(blur_algorithms,
-				  obs_module_text(ALGO_GAUSSIAN_LABEL),
-				  ALGO_GAUSSIAN);
+	if (gs_get_device_type() != GS_DEVICE_OPENGL) {
+		obs_property_list_add_int(blur_algorithms,
+					  obs_module_text(ALGO_GAUSSIAN_LABEL),
+					  ALGO_GAUSSIAN);
+	}
 	obs_property_list_add_int(blur_algorithms,
 				  obs_module_text(ALGO_BOX_LABEL), ALGO_BOX);
-	obs_property_list_add_int(blur_algorithms,
-				  obs_module_text(ALGO_KAWASE_LABEL),
-				  ALGO_KAWASE);
+	// obs_property_list_add_int(blur_algorithms,
+	// 			  obs_module_text(ALGO_KAWASE_LABEL),
+	// 			  ALGO_KAWASE);
 	obs_property_set_modified_callback2(
 		blur_algorithms, setting_blur_algorithm_modified, data);
 
