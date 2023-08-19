@@ -224,11 +224,14 @@ static obs_properties_t *composite_blur_properties(void *data)
 		props, "blur_algorithm",
 		obs_module_text("CompositeBlurFilter.BlurAlgorithm"),
 		OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
-	if (gs_get_device_type() != GS_DEVICE_OPENGL) {
-		obs_property_list_add_int(blur_algorithms,
-					  obs_module_text(ALGO_GAUSSIAN_LABEL),
-					  ALGO_GAUSSIAN);
-	}
+
+#ifdef _WIN32
+	// Gaussian currently only works on Windows/Direct3D
+	obs_property_list_add_int(blur_algorithms,
+				  obs_module_text(ALGO_GAUSSIAN_LABEL),
+				  ALGO_GAUSSIAN);
+#endif
+
 	obs_property_list_add_int(blur_algorithms,
 				  obs_module_text(ALGO_BOX_LABEL), ALGO_BOX);
 	// obs_property_list_add_int(blur_algorithms,
